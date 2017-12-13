@@ -89,6 +89,8 @@ What we learned form coverage and oyente analyses
 
 ## Emitting Events After Other Operations Succeeded
 
+Events are used for logging information from contract execution. Often, external program listen to events to do off-chain computations, e.g., presenting the status of the transaction in a buyer-facing application. We noticed that the function *\_createTransaction()* emits the event *TransactionInitiated()* before calling the function *\_transferFrom*. The latter, however, may fail if the buyer attempts to transfer more tokens than they actually posses. Consequently, any external tools may get confused, as they will see that a transaction got initiated, whereas it got reverted after emitting the event. We recommend placing the event after the token transfer succeeds. If external tools can deal with failed transactions, we recommend clearly documenting this assumption in the contract.
+
 ## Require Mediator to Be Different from Buyer and Seller
 
 According to the Whitepaper, mediator is a well known third party that helps to dispute a transaction between the buyer and the seller. Nowhere in the contract have we found a statement requiring that mediator must be different from the buyer and the seller. If one of the parties is careless, another party may take advantage by establishing themselves as the mediator. This is a potential security vulnerability. Although the contract cannot ensure that the mediator is always legitimate, it can rule out one obvious case.
@@ -100,20 +102,6 @@ We noted that majority of the functions were self-explanatory. Although standard
 According to the Functional Specification users may link accounts to aggregate ratings. Linking must be mutual, i.e., accepted by the two linked accounts. Futhermore, the contract is supposed to store information about which accounts are linked. We found out that the code does not adhere to this specification, which could have security implications. In the code, account linking functions (*linkWith*, *link* and *\_link*) only validate parameters and emit events. First, they do not assure mutual linking. Second, they do not store information about which accounts are linked. In principle, anyone could call *linkWith* to merge their reputation with another accounts. The Pay with Ink team explained that account linking will be handled outside the contract.
 
 We recommend clearly documenting implicit assumptions and possible interactions with external components of the system.
-
-## Compiler Warnings
-
-Compilation warnings encountered:
-
-/Users/kbak/quantstamp/src/ink/contracts/mocks/AgentMock.sol:6:3: Warning: No visibility specified. Defaulting to "public".
-  function AgentMock(address _inkAddress, address _owner2, address _owner3) Agent(_inkAddress, _owner2, _owner3) {
-  ^
-Spanning multiple lines.
-,/Users/kbak/quantstamp/src/ink/contracts/mocks/MediatorFeeMock.sol:14:43: Warning: Unused function parameter. Remove or comment out the variable name to silence this warning.
-  function settleTransactionByMediatorFee(uint _buyerAmount, uint _sellerAmount) external returns (uint, uint) {
-                                          ^---------------^
-,/Users/kbak/quantstamp/src/ink/contracts/mocks/MediatorFeeMock.sol:14:62: Warning: Unused function parameter. Remove or comment out the variable name to silence this warning.
-  function settleTransactionByMediatorFee(uint _buyerAmount, uint _sellerAmount) external returns (uint, uint) {
 
 # Appendix
 
