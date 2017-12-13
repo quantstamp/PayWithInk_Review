@@ -161,7 +161,6 @@ $ shasum -a 256 ./migrations/*
 02262647f9e4ae93fd8cde457d47e7349af9147d370f7eabc89557691994f61b  ./migrations/2_deploy_contracts.js
 71392eff99a6cbcd3696fbdc20e9728c274361663c5dd1a1e45554f1106a8219  ./migrations/3_deploy_agent.js
 
-
 ```
 
 # Disclosure
