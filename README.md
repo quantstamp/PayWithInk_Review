@@ -60,12 +60,14 @@ We evaluated the test coverage using truffle and solidity-coverage. The below no
 interaface->contract
 yarn-bin-fix
 
+OnlyOperator - see in other tests
+
 ## Setup
 
 Testing setup:
 * Truffle v4.0.1
 * TestRPC v4.1.3
-* solidity-coverage v0.2.5
+* solidity-coverage v0.4.3
 * oyente v0.2.7
 
 ## Steps
@@ -73,16 +75,19 @@ Testing setup:
 Steps taken to run the full test suite:
 
 * Following instruction from the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
-
-TODO: comments on gas. Need to run one by one
-
-All the tests in the suite passed.? Run one by one
+* Alex - your changes, no gas adjustment, right? Needed to comment out one test - modifier
+* yarn
+  npm install --save-dev solidity-coverage
+  yarn-bin-fix 
+  ./node_modules/.bin/solidity-coverage
 
 ## Evaluation
 
 What we learned form coverage and oyente analyses
 
 # Recommendations
+
+## Emitting Events After Other Operations Succeeded
 
 ## Require Mediator to Be Different from Buyer and Seller
 
@@ -95,6 +100,20 @@ We noted that majority of the functions were self-explanatory. Although standard
 According to the Functional Specification users may link accounts to aggregate ratings. Linking must be mutual, i.e., accepted by the two linked accounts. Futhermore, the contract is supposed to store information about which accounts are linked. We found out that the code does not adhere to this specification, which could have security implications. In the code, account linking functions (*linkWith*, *link* and *\_link*) only validate parameters and emit events. First, they do not assure mutual linking. Second, they do not store information about which accounts are linked. In principle, anyone could call *linkWith* to merge their reputation with another accounts. The Pay with Ink team explained that account linking will be handled outside the contract.
 
 We recommend clearly documenting implicit assumptions and possible interactions with external components of the system.
+
+## Compiler Warnings
+
+Compilation warnings encountered:
+
+/Users/kbak/quantstamp/src/ink/contracts/mocks/AgentMock.sol:6:3: Warning: No visibility specified. Defaulting to "public".
+  function AgentMock(address _inkAddress, address _owner2, address _owner3) Agent(_inkAddress, _owner2, _owner3) {
+  ^
+Spanning multiple lines.
+,/Users/kbak/quantstamp/src/ink/contracts/mocks/MediatorFeeMock.sol:14:43: Warning: Unused function parameter. Remove or comment out the variable name to silence this warning.
+  function settleTransactionByMediatorFee(uint _buyerAmount, uint _sellerAmount) external returns (uint, uint) {
+                                          ^---------------^
+,/Users/kbak/quantstamp/src/ink/contracts/mocks/MediatorFeeMock.sol:14:62: Warning: Unused function parameter. Remove or comment out the variable name to silence this warning.
+  function settleTransactionByMediatorFee(uint _buyerAmount, uint _sellerAmount) external returns (uint, uint) {
 
 # Appendix
 
