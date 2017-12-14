@@ -62,6 +62,7 @@ We evaluated the test coverage using truffle and solidity-coverage. The below no
 Testing setup:
 * Truffle v4.0.1
 * solidity-coverage v0.4.3
+* a modified version of Oyente tool based on commit https://github.com/melonproject/oyente/commits/ece2c241517ff3e32060b53c596a7540b985282c.
 
 ## Steps
 
@@ -75,6 +76,7 @@ Steps taken to run the full test suite:
 * Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
 * Patched `yarn` with `yarn-bin-fix` to workaround the yarn-specific issue with transitive dependencies.
 * Ran the coverage tool: `./node_modules/.bin/solidity-coverage`
+* To workaround limitations of the Oyente tool, line 3 of Ink.sol was prepended by `./` (`zeppelin-solidity` -> `./zeppelin-solidity`), and Zeppelin files were moved accordingly.
 
 ## Evaluation
 
@@ -93,16 +95,7 @@ We evaluated the coverage report and identified three classes of missing test co
 
 We did not evaluate coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
 
-# Oyente
-
-## Setup
-
-* A modified version of the Oyente tool, based on the commit `ece2c241517ff3e32060b53c596a7540b985282c` of the original repository (https://github.com/melonproject/oyente). The modification includes upgrading the
-default `solc` that comes with the tool from `0.4.17` to `0.4.18`.
-
-## Steps
-
-In a separate PR.
+Symbolic execution (the Oyente tool) did not detect any vulnerabilities of types Parity Multisig Bug 2, Callstack Depth Attack, Transaction-Ordering Dependence (TOD), Timestamp Dependency, and Re-Entrancy Vulnerability. However, EVM code coverage was reported as `68.3%`, so the tool did not explore all possible paths.
 
 # Recommendations
 
