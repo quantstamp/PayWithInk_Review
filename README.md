@@ -97,10 +97,10 @@ The coverage result of the `Ink.sol` file:
 
 We evaluated the coverage report and identified three classes of missing test coverage:
 1. Most `require()` calls, such as, `require(_transaction.state == TransactionState.Initiated);`, do not have any tests covering cases when the underlying expression evaluates to `false`. We recommend adding tests to cover these edge cases.
-2. The linking logic (lines `203-210`, `671-678`) is not covered. However, since the contract does not make any queries to created links, test coverage of these lines may not be valuable.
+2. The linking logic (lines `203-210`, `671-678`) is not covered. However, since the contract does not make any queries to created links, test coverage of these lines is not necessary.
 3. The `revert()` calls (lines `375`, `399`) are not covered, however, we recommend adding tests for these edge cases as well.
 
-We did not evaluate coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
+We did not evaluate the coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
 
 Symbolic execution (the Oyente tool) did not detect any vulnerabilities of types Parity Multisig Bug 2, Callstack Depth Attack, Transaction-Ordering Dependence (TOD), Timestamp Dependency, and Re-Entrancy Vulnerability. However, EVM code coverage was reported as `68.3%`, so the tool did not explore all possible paths.
 
