@@ -71,7 +71,7 @@ Steps taken to run the full test suite:
 * Installed dependencies as described in the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
 * Ran the entire test suite using `yarn run truffle test`. Encountered some test failures, which was consistent with the authors' notes. In order to collect accurate test coverage information, we introduced the following fixes:
   * To fix the "out of gas" exception, we turned each module from the "test/Ink/" subfolder into runnable test fixtures by replacing the lines like `module.exports = (accounts) => {` with `contract("Ink", async (accounts) => {` and appending `);` to the end of each file. Removed the `test/Ink.js` file. Possible reasons include Truffle being unable to handle large test fixtures.
-  * To fix the `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`.
+  * To fix the `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`. See the *Recommendations* section for details.
 * Since the coverage tool does not support contracts that have references to interfaces, we turned `InkMediator.sol` and `InkPolicy.sol` into contracts by replacing the keyword `interface` with `contract`.
 * Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
 * Patched `yarn` with `yarn-bin-fix` to workaround the yarn-specific issue with transitive dependencies.
@@ -113,6 +113,10 @@ Events are used for logging information from contract execution. Often, external
 ## Require Mediator to Be Different from Buyer and Seller
 
 According to the Whitepaper, mediator is a well known third party that helps to dispute a transaction between the buyer and the seller. Nowhere in the contract have we found a statement requiring that the mediator must be different from the buyer and the seller. If one of the parties is careless, another party may take advantage by establishing themselves as the mediator. This is a potential security vulnerability. Although the contract cannot ensure that the mediator is always legitimate, it can rule out these obvious cases.
+
+## Fixing Agent Tests
+
+The test Agent.js was failing due to the call `createAccount()`. Similarly to other methods of the contract Agent.sol, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws as exception because the required statement `onlyOperator` fails.
 
 ## Code Documentation
 
