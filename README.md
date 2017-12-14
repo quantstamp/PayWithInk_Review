@@ -62,7 +62,7 @@ We evaluated the test coverage using truffle and solidity-coverage. The below no
 Testing setup:
 * Truffle v4.0.1
 * solidity-coverage v0.4.3
-* a modified version of Oyente tool based on commit https://github.com/melonproject/oyente/commits/ece2c241517ff3e32060b53c596a7540b985282c.
+* a modified version of Oyente tool based on [commit]( https://github.com/melonproject/oyente/commits/ece2c241517ff3e32060b53c596a7540b985282c).
 
 ## Steps
 
@@ -75,6 +75,13 @@ Steps taken to run the full test suite:
 * Since the coverage tool does not support contracts that have references to interfaces, we turned `InkMediator.sol` and `InkPolicy.sol` into contracts by replacing the keyword `interface` with `contract`.
 * Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
 * Patched `yarn` with `yarn-bin-fix` to workaround the yarn-specific issue with transitive dependencies.
+* Added a configuration file `.solcover.js` to the project root:
+  ```
+  module.exports = {
+    copyNodeModules: true
+  }
+  ```
+
 * Ran the coverage tool: `./node_modules/.bin/solidity-coverage`
 * To workaround limitations of the Oyente tool, line 3 of Ink.sol was prepended by `./` (`zeppelin-solidity` -> `./zeppelin-solidity`), and Zeppelin files were moved accordingly.
 
