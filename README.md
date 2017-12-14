@@ -10,7 +10,7 @@ Our understanding of the specification was based on the following documentation:
 * [Whitepaper](https://paywithink.com/wp-content/uploads/2017/11/Ink_Protocol_Whitepaper_V4_Listia_Inc.pdf) dated November 28, 2017,
 * [Functional Specification](https://paywithink.com/wp-content/uploads/2017/11/Ink-Functional-Spec.pdf), and
 * [Anatomy of an Ink Protocol Transaction](https://medium.com/@PayWithInk/anatomy-of-an-ink-protocol-transaction-24fec7e316b8).
-We also reviewed the instructions provided in the [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md) file in the github repository at the time of the audit. 
+We also reviewed the instructions provided in the [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md) file in the github repository at the time of the audit.
 
 ## Methodology
 
@@ -57,33 +57,52 @@ Possible issues include (but are not limited to):
 
 We evaluated the test coverage using truffle and solidity-coverage. The below notes outline the setup and steps that were performed.
 
-interaface->contract
-yarn-bin-fix
-
-OnlyOperator - see in other tests
-
 ## Setup
 
 Testing setup:
 * Truffle v4.0.1
-* TestRPC v4.1.3
 * solidity-coverage v0.4.3
-* oyente v0.2.7
+* a modified version of Oyente tool based on [commit]( https://github.com/melonproject/oyente/commits/ece2c241517ff3e32060b53c596a7540b985282c).
 
 ## Steps
 
 Steps taken to run the full test suite:
 
-* Following instruction from the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
-* Alex - your changes, no gas adjustment, right? Needed to comment out one test - modifier
-* yarn
-  npm install --save-dev solidity-coverage
-  yarn-bin-fix 
-  ./node_modules/.bin/solidity-coverage
+* Installed dependencies as described in the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
+* Ran the entire test suite using `yarn run truffle test`. Encountered some test failures, which was consistent with the authors' notes. In order to collect accurate test coverage information, we introduced the following fixes:
+  * To fix the "out of gas" exception, we turned each module from the "test/Ink/" subfolder into runnable test fixtures by replacing the lines like `module.exports = (accounts) => {` with `contract("Ink", async (accounts) => {` and appending `);` to the end of each file. Removed the `test/Ink.js` file. Possible reasons include Truffle being unable to handle large test fixtures.
+  * To fix the `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`. See the *Recommendations* section for details.
+* Since the coverage tool does not support contracts that have references to interfaces, we turned `InkMediator.sol` and `InkPolicy.sol` into contracts by replacing the keyword `interface` with `contract`.
+* Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
+* Patched `yarn` with `yarn-bin-fix` to workaround the yarn-specific issue with transitive dependencies.
+* Added a configuration file `.solcover.js` to the project root:
+  ```
+  module.exports = {
+    copyNodeModules: true
+  }
+  ```
+
+* Ran the coverage tool: `./node_modules/.bin/solidity-coverage`
+* To workaround limitations of the Oyente tool, line 3 of Ink.sol was prepended by `./` (`zeppelin-solidity` -> `./zeppelin-solidity`), and Zeppelin files were moved accordingly.
 
 ## Evaluation
 
-What we learned form coverage and oyente analyses
+The coverage result of the `Ink.sol` file:
+```
+95.88% Statements 186/194
+83.75% Branches 134/160
+94.12% Functions 48/51
+95.72% Lines 179/187
+```
+
+We evaluated the coverage report and identified three classes of missing test coverage:
+1. Most `require()` calls, such as, `require(_transaction.state == TransactionState.Initiated);`, do not have any tests covering cases when the underlying expression evaluates to `false`. We recommend adding tests to cover these edge cases.
+2. The linking logic (lines `203-210`, `671-678`) is not covered. However, since the contract does not make any queries to created links, test coverage of these lines is not necessary.
+3. The `revert()` calls (lines `375`, `399`) are not covered, however, we recommend adding tests for these edge cases as well.
+
+We did not evaluate the coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
+
+Symbolic execution (the Oyente tool) did not detect any vulnerabilities of types Parity Multisig Bug 2, Callstack Depth Attack, Transaction-Ordering Dependence (TOD), Timestamp Dependency, and Re-Entrancy Vulnerability. However, EVM code coverage was reported as `68.3%`, so the tool did not explore all possible paths.
 
 # Recommendations
 
@@ -94,6 +113,10 @@ Events are used for logging information from contract execution. Often, external
 ## Require Mediator to Be Different from Buyer and Seller
 
 According to the Whitepaper, mediator is a well known third party that helps to dispute a transaction between the buyer and the seller. Nowhere in the contract have we found a statement requiring that the mediator must be different from the buyer and the seller. If one of the parties is careless, another party may take advantage by establishing themselves as the mediator. This is a potential security vulnerability. Although the contract cannot ensure that the mediator is always legitimate, it can rule out these obvious cases.
+
+## Fixing Agent Tests
+
+The test Agent.js was failing due to the call `createAccount()`. Similarly to other methods of the contract Agent.sol, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws as exception because the required statement `onlyOperator` fails.
 
 ## Code Documentation
 
@@ -178,4 +201,3 @@ You may, through hypertext or other computer links, gain access to web sites ope
 
 ## Timeliness of content
 The content contained in the report is current as of the date appearing on the report and is subject to change without notice, unless indicated otherwise by QTI; however, QTI does not guarantee or warrant the accuracy, timeliness, or completeness of any report you access using the internet or other means, and assumes no obligation to update any information following publication.
-
