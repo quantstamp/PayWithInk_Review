@@ -10,7 +10,7 @@ Our understanding of the specification was based on the following documentation:
 * [Whitepaper](https://paywithink.com/wp-content/uploads/2017/11/Ink_Protocol_Whitepaper_V4_Listia_Inc.pdf) dated November 28, 2017,
 * [Functional Specification](https://paywithink.com/wp-content/uploads/2017/11/Ink-Functional-Spec.pdf), and
 * [Anatomy of an Ink Protocol Transaction](https://medium.com/@PayWithInk/anatomy-of-an-ink-protocol-transaction-24fec7e316b8).
-We also reviewed the instructions provided in the [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md) file in the github repository at the time of the audit. 
+We also reviewed the instructions provided in the [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md) file in the github repository at the time of the audit.
 
 ## Methodology
 
@@ -57,33 +57,52 @@ Possible issues include (but are not limited to):
 
 We evaluated the test coverage using truffle and solidity-coverage. The below notes outline the setup and steps that were performed.
 
-interaface->contract
-yarn-bin-fix
-
-OnlyOperator - see in other tests
-
 ## Setup
 
 Testing setup:
 * Truffle v4.0.1
-* TestRPC v4.1.3
 * solidity-coverage v0.4.3
-* oyente v0.2.7
 
 ## Steps
 
 Steps taken to run the full test suite:
 
-* Following instruction from the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
-* Alex - your changes, no gas adjustment, right? Needed to comment out one test - modifier
-* yarn
-  npm install --save-dev solidity-coverage
-  yarn-bin-fix 
-  ./node_modules/.bin/solidity-coverage
+* Installed dependencies as described in the readme file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
+* Ran the entire test suite using `yarn run truffle test`. Encountered some test failures, which was consistent with the authors' notes. In order to collect accurate test coverage information, we introduced the following fixes:
+  * To fix the "out of gas" exception, we turned each module from the "test/Ink/" subfolder into runnable test fixtures by replacing the lines like `module.exports = (accounts) => {` with `contract("Ink", async (accounts) => {` and appending `);` to the end of each file. Removed the `test/Ink.js` file. Possible reasons include Truffle being unable to handle large test fixtures.
+  * To fix the `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`.
+* Since the coverage tool does not support contracts that have references to interfaces, we turned `InkMediator.sol` and `InkPolicy.sol` into contracts by replacing the keyword `interface` with `contract`.
+* Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
+* Patched `yarn` with `yarn-bin-fix` to workaround the yarn-specific issue with transitive dependencies.
+* Ran the coverage tool: `./node_modules/.bin/solidity-coverage`
 
 ## Evaluation
 
-What we learned form coverage and oyente analyses
+The coverage result of the `Ink.sol` file:
+```
+95.88% Statements 186/194
+83.75% Branches 134/160
+94.12% Functions 48/51
+95.72% Lines 179/187
+```
+
+We evaluated the coverage report and identified three classes of missing test coverage:
+1. Most `require()` calls, such as, `require(_transaction.state == TransactionState.Initiated);`, do not have any tests covering cases when the underlying expression evaluates to `false`. We recommend adding tests to cover these edge cases.
+2. The linking logic (lines `203-210`, `671-678`) is not covered. However, since the contract does not make any queries to created links, test coverage of these lines may not be valuable.
+3. The `revert()` calls (lines `375`, `399`) are not covered, however, we recommend adding tests for these edge cases as well.
+
+We did not evaluate coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
+
+# Oyente
+
+## Setup
+
+* A modified version of the Oyente tool, based on the commit `ece2c241517ff3e32060b53c596a7540b985282c` of the original repository (https://github.com/melonproject/oyente). The modification includes upgrading the
+default `solc` that comes with the tool from `0.4.17` to `0.4.18`.
+
+## Steps
+
+In a separate PR.
 
 # Recommendations
 
@@ -178,4 +197,3 @@ You may, through hypertext or other computer links, gain access to web sites ope
 
 ## Timeliness of content
 The content contained in the report is current as of the date appearing on the report and is subject to change without notice, unless indicated otherwise by QTI; however, QTI does not guarantee or warrant the accuracy, timeliness, or completeness of any report you access using the internet or other means, and assumes no obligation to update any information following publication.
-
