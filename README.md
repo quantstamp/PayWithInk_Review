@@ -1,4 +1,4 @@
-Overview
+# Overview
 
 This smart contract audit was prepared by [Quantstamp](https://www.quantstamp.com/), the protocol for securing smart contracts.
 
