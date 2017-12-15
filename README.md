@@ -70,7 +70,7 @@ Steps taken to run the full test suite:
 * Installed dependencies as described in the file [README.md](https://github.com/listia/ink/blob/2c3e8ea6fe2027b6ef0013a5a93c292d030c611d/README.md).
 * Ran the entire test suite using `yarn run truffle test`. Encountered some test failures, which was consistent with the Pay with Ink authors' notes. In order to collect accurate test coverage information, we introduced the following fixes:
   * To fix the "out of gas" exception, we turned each module from the "test/Ink/" subfolder into runnable test fixtures by replacing the lines like `module.exports = (accounts) => {` with `contract("Ink", async (accounts) => {` and appending `);` to the end of each file. Removed the file `test/Ink.js`. Possible reasons for this change include Truffle being unable to handle large test fixtures.
-  * To fix the error `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`. See the cection *Recommendations* for details.
+  * To fix the error `Error: VM Exception while processing transaction: invalid opcode` when running the test `Agent #createAccount() creates a user contract`, commented out `onlyOperator` in `contracts/Agent.sol`. See the section *Recommendations* for details.
 * Since the coverage tool does not support contracts that have references to interfaces, we turned `InkMediator.sol` and `InkPolicy.sol` into contracts by replacing the keyword `interface` with `contract`.
 * Installed the `solidity-coverage` tool: `npm install --save-dev solidity-coverage`.
 * Patched `yarn` with `yarn-bin-fix` to work around the yarn-specific issue with transitive dependencies.
@@ -115,7 +115,7 @@ According to the Whitepaper, mediator is a well known third party that helps to 
 
 ## Respecting the Modifier `onlyOperator`
 
-The test `Agent.js` was failing due to the call `createAccount()`. Similarly to other methods of the contract `Agent.sol`, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws an exception because the required statement `onlyOperator` fails. In the current setup, call to any other method protected by `onlyOperator` will fail. We recommend updating the contract constructor(s) to correctly modify the map `operators`.
+The test `Agent.js` was failing due to the call `createAccount()`. Similarly to other methods of the contract `Agent.sol`, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws an exception because the required statement `onlyOperator` fails. In the current setup, call to any other method protected by `onlyOperator` will fail as well. We recommend updating the contract constructor(s) to correctly modify the map `operators`.
 
 ## Code Documentation
 
