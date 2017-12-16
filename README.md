@@ -101,7 +101,7 @@ We evaluated the coverage report and identified three classes of missing test co
 
 We did not evaluate the coverage of `Agent.sol`, `Account.sol`, and `ThreeOwnable.sol` as they are outside the scope of the current audit request.
 
-Symbolic execution (the Oyente tool) did not detect any vulnerabilities of types Parity Multisig Bug 2, Callstack Depth Attack, Transaction-Ordering Dependence (TOD), Timestamp Dependency, and Re-Entrancy Vulnerability. However, EVM code coverage was reported as `68.3%`, so the tool did not explore all possible paths.
+Symbolic execution (the Oyente tool) did not detect any vulnerabilities of types Parity Multisig Bug 2, Callstack Depth Attack, Transaction-Ordering Dependence (TOD), Timestamp Dependency, and Re-Entrancy Vulnerability. However, EVM code coverage was reported as `68.3%`, so the tool did not explore all the possible paths.
 
 # Recommendations
 
@@ -115,7 +115,7 @@ According to the Whitepaper, mediator is a well known third party that helps to 
 
 ## Respecting the Modifier `onlyOperator`
 
-The test `Agent.js` was failing due to the call `createAccount()`. Similarly to other methods of the contract `Agent.sol`, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws an exception because the required statement `onlyOperator` fails. In the current setup, call to any other method protected by `onlyOperator` will fail as well. We recommend updating the contract constructor(s) to correctly modify the map `operators`.
+The test `Agent.js` was failing due to the call `createAccount()`. Similarly to other methods of the contract `Agent.sol`, `createAccount()` has the modifier `onlyOperator` (inherited from `ThreeOwnable`). The modifier requires that the caller belongs to the map `operators`. None of the constructors of `AgentMock`, `Agent`, nor `ThreeOwnable` updates the map `operators`. Consequently, the call throws an exception because the required statement in `onlyOperator` fails. In the current setup, call to any other method protected by `onlyOperator` will fail as well. We recommend updating the contract constructor(s) to correctly modify the map `operators`.
 
 ## Code Documentation
 
